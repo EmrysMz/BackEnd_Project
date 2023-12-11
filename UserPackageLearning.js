@@ -18,15 +18,15 @@ UserPackageLearningTable.init({
         type: sequelize_2.DataTypes.INTEGER,
         primaryKey: true,
     },
-    startDate: {
+    startdate: {
         type: sequelize_2.DataTypes.DATE,
         allowNull: false,
     },
-    exceptedEndDate: {
+    exceptedenddate: {
         type: sequelize_2.DataTypes.DATE,
         allowNull: false,
     },
-    minutesPerDayObjective: {
+    minutesperdayobjective: {
         type: sequelize_2.DataTypes.INTEGER,
         allowNull: false
     },

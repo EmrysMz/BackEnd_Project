@@ -125,6 +125,17 @@ app.get('/api/package',async(req: Request, res: Response)=> {
 
 });
 
+//get all users
+app.get('/api/users',async (Request,res:Response)=>{
+    try{
+        const usersList =  await UserTable.findAll()
+        res.json(usersList)
+    }
+    catch (error){
+        res.json({error : 'Database connection error'})
+    }
+});
+
 // get all learning packages summaries by filtering to only keep id and title
 
 app.get('/api/package-summaries',async(req: Request, res: Response)=> {
@@ -159,7 +170,7 @@ app.post('/api/package', async(req: Request, res: Response) => {
         const rowsNb = await LearningPackageTable.count()
 
         const learningPackage = await LearningPackageTable.create( {
-            id :  rowsNb+ 1,
+            learningpackageid :  rowsNb+ 1,
             title,
             description,
             category,
@@ -214,7 +225,7 @@ app.get('/api/package/:id/fact',async(req: Request, res: Response)=> {
 
         const learningFacts =  await LearningFactTable.findAll()
         const id = parseInt(req.params.id)
-        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningfactid === id);
+        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningpackageid === id);
 
         res.json(learningPackageFacts)
     }

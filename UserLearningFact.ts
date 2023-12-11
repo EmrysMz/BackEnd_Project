@@ -7,11 +7,11 @@ import UserTable from "./User";
 class UserLearningFactTable extends Model{
     public userid!: number;
     public learningpackageid!: number;
-    public timesReviewed!: number;
-    public confidenceLevel!: number;
-    public lastReviewedDate!: Date;
-    public startDate!: Date;
-    public endDate!: Date;
+    public timesreviewed!: number;
+    public confidencelevel!: number;
+    public lastrevieweddate!: Date;
+    public startdate!: Date;
+    public enddate!: Date;
     public finished!: boolean;
 
 
@@ -27,24 +27,24 @@ UserLearningFactTable.init(
             type: DataTypes.INTEGER,
             primaryKey: true,
         },
-        timesReviewed: {
+        timesreviewed: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        confidenceLevel: {
+        confidencelevel: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
-        lastReviewedDate: {
+        lastrevieweddate: {
             type: DataTypes.DATE,
             allowNull:false,
 
         },
-        startDate:{
+        startdate:{
             type: DataTypes.DATE,
             allowNull:false,
         },
-        endDate:{
+        enddate:{
             type: DataTypes.DATE,
             allowNull:false,
         },

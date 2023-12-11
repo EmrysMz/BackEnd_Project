@@ -18,23 +18,23 @@ UserLearningFactTable.init({
         type: sequelize_2.DataTypes.INTEGER,
         primaryKey: true,
     },
-    timesReviewed: {
+    timesreviewed: {
         type: sequelize_2.DataTypes.INTEGER,
         allowNull: false,
     },
-    confidenceLevel: {
+    confidencelevel: {
         type: sequelize_2.DataTypes.INTEGER,
         allowNull: false,
     },
-    lastReviewedDate: {
+    lastrevieweddate: {
         type: sequelize_2.DataTypes.DATE,
         allowNull: false,
     },
-    startDate: {
+    startdate: {
         type: sequelize_2.DataTypes.DATE,
         allowNull: false,
     },
-    endDate: {
+    enddate: {
         type: sequelize_2.DataTypes.DATE,
         allowNull: false,
     },

@@ -7,9 +7,9 @@ import UserTable from "./User";
 class UserPackageLearningTable extends Model{
     public userid!: number;
     public learningpackageid!: number;
-    public startDate!: Date;
-    public exceptedEndDate!: Date;
-    public minutesPerDayObjective!: number;
+    public startdate!: Date;
+    public exceptedenddate!: Date;
+    public minutesperdayobjective!: number;
     public finished!: boolean;
 
 }
@@ -24,15 +24,15 @@ UserPackageLearningTable.init(
             type: DataTypes.INTEGER,
             primaryKey: true,
         },
-        startDate: {
+        startdate: {
             type: DataTypes.DATE,
             allowNull: false,
         },
-        exceptedEndDate: {
+        exceptedenddate: {
             type: DataTypes.DATE,
             allowNull: false,
         },
-        minutesPerDayObjective: {
+        minutesperdayobjective: {
             type: DataTypes.INTEGER,
             allowNull:false
 

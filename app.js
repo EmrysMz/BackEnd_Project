@@ -19,6 +19,7 @@ const LearningPackage_1 = __importDefault(require("./LearningPackage"));
 const LearningFact_1 = __importDefault(require("./LearningFact"));
 const UserPackageLearning_1 = __importDefault(require("./UserPackageLearning"));
 const LearningSession_1 = __importDefault(require("./LearningSession"));
+const User_1 = __importDefault(require("./User"));
 //express configuration
 const app = (0, express_1.default)();
 const port = 3000;
@@ -79,6 +80,16 @@ app.get('/api/package', (req, res) => __awaiter(void 0, void 0, void 0, function
         res.json({ error: 'Database connection error' });
     }
 }));
+//get all users
+app.get('/api/users', (Request, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const usersList = yield User_1.default.findAll();
+        res.json(usersList);
+    }
+    catch (error) {
+        res.json({ error: 'Database connection error' });
+    }
+}));
 // get all learning packages summaries by filtering to only keep id and title
 app.get('/api/package-summaries', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const learningPackages = yield LearningPackage_1.default.findAll();
@@ -106,7 +117,7 @@ app.post('/api/package', (req, res) => __awaiter(void 0, void 0, void 0, functio
     else {
         const rowsNb = yield LearningPackage_1.default.count();
         const learningPackage = yield LearningPackage_1.default.create({
-            id: rowsNb + 1,
+            learningpackageid: rowsNb + 1,
             title,
             description,
             category,
@@ -150,7 +161,7 @@ app.get('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0,
     try {
         const learningFacts = yield LearningFact_1.default.findAll();
         const id = parseInt(req.params.id);
-        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningfactid === id);
+        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningpackageid === id);
         res.json(learningPackageFacts);
     }
     catch (error) {

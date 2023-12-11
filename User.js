@@ -13,7 +13,7 @@ UserTable.init({
         primaryKey: true
     },
     name: {
-        type: sequelize_2.DataTypes.INTEGER,
+        type: sequelize_2.DataTypes.STRING,
         allowNull: false
     }
 }, {
