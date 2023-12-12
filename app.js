@@ -25,7 +25,8 @@ const app = (0, express_1.default)();
 const port = 3000;
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, GET, POST, OPTIONS, DELETE, PUT');
+    res.header("Access-Control-Allow-Methods", "GET , PUT , POST , DELETE");
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, GET, POST, OPTIONS, DELETE, PUT,UPDATE,DELETE');
     next();
 });
 const currentDate = new Date();
@@ -90,6 +91,24 @@ app.get('/api/users', (Request, res) => __awaiter(void 0, void 0, void 0, functi
         res.json({ error: 'Database connection error' });
     }
 }));
+app.post('/api/users', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
+    try {
+        const count = yield User_1.default.count();
+        const newUser = yield User_1.default.create({
+            userid: count + 1,
+            name,
+        });
+        res.status(201).json(newUser);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error adding user' });
+    }
+}));
 // get all learning packages summaries by filtering to only keep id and title
 app.get('/api/package-summaries', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const learningPackages = yield LearningPackage_1.default.findAll();
@@ -134,12 +153,12 @@ app.post('/api/package', (req, res) => __awaiter(void 0, void 0, void 0, functio
 }));
 // Put : to update an existing package by changing the row found with the id in the request body
 app.put('/api/package', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id, title, description, category, targetaudience, difficulty } = req.body;
-    if (!id || !title || !description || !category || !targetaudience || !difficulty) {
+    const { learningpackageid, title, description, category, targetaudience, difficulty } = req.body;
+    if (!learningpackageid || !title || !description || !category || !targetaudience || !difficulty) {
         res.status(400).json({ error: `Some fields are not provided ${req.body}` });
     }
     else {
-        const learningPackage = yield LearningPackage_1.default.findByPk(id);
+        const learningPackage = yield LearningPackage_1.default.findByPk(learningpackageid);
         if (learningPackage) {
             yield learningPackage.update({
                 title,
@@ -170,9 +189,9 @@ app.get('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0,
 }));
 // post : to create a fact with the package id parameter in the URL
 app.post('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, description } = req.body;
+    const { title, description, content } = req.body;
     const packageId = parseInt(req.params.id);
-    if (!title || !description) {
+    if (!title || !description || !content) {
         res.status(400).json({ error: 'Some fields are not provided' });
     }
     else {
@@ -180,10 +199,12 @@ app.post('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0
             const rowsNb = yield LearningFact_1.default.count();
             const factId = rowsNb + 1;
             const learningFact = yield LearningFact_1.default.create({
-                id: factId,
+                learningfactid: factId,
                 title,
                 description,
-                packageid: Number(packageId),
+                content,
+                learningpackageid: Number(packageId),
+                disable: false
             });
             res.status(200).json(learningFact);
         }
@@ -194,20 +215,21 @@ app.post('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0
 }));
 // update an existing fact with the id in body and package id in url parameter
 app.put('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, description, id } = req.body;
+    const { title, description, learningfactid, content } = req.body;
     const packageId = parseInt(req.params.id);
-    if (!title || !description) {
+    if (!title || !description || !content) {
         res.status(400).json({ error: 'Some fields are not provided' });
     }
     else {
         try {
             const learningFact = yield LearningFact_1.default.findOne({
-                where: { packageid: packageId, id: id },
+                where: { learningpackageid: packageId, learningfactid: learningfactid },
             });
             if (learningFact) {
                 yield learningFact.update({
                     title,
                     description,
+                    content
                 });
                 res.status(200).json(learningFact);
             }

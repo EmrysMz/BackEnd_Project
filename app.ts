@@ -20,7 +20,8 @@ const port = 3000;
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, GET, POST, OPTIONS, DELETE, PUT');
+    res.header("Access-Control-Allow-Methods", "GET , PUT , POST , DELETE");
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, GET, POST, OPTIONS, DELETE, PUT,UPDATE,DELETE');
     next();
 });
 
@@ -136,6 +137,28 @@ app.get('/api/users',async (Request,res:Response)=>{
     }
 });
 
+app.post('/api/users', async (req, res) => {
+    const { name } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
+
+    try {
+        const count = await UserTable.count();
+        const newUser = await UserTable.create({
+            userid: count + 1,
+            name,
+        });
+
+        res.status(201).json(newUser);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error adding user' });
+    }
+});
+
+
 // get all learning packages summaries by filtering to only keep id and title
 
 app.get('/api/package-summaries',async(req: Request, res: Response)=> {
@@ -192,12 +215,12 @@ app.post('/api/package', async(req: Request, res: Response) => {
 // Put : to update an existing package by changing the row found with the id in the request body
 app.put('/api/package',async (req: Request, res: Response) =>{
 
-    const { id, title, description, category, targetaudience, difficulty } = req.body;
+    const { learningpackageid, title, description, category, targetaudience, difficulty } = req.body;
 
-    if (!id || !title || !description || !category || !targetaudience || !difficulty) {
+    if (!learningpackageid || !title || !description || !category || !targetaudience || !difficulty) {
         res.status(400).json({ error: `Some fields are not provided ${req.body}` });
     } else {
-        const learningPackage = await LearningPackageTable.findByPk(id)
+        const learningPackage = await LearningPackageTable.findByPk(learningpackageid)
 
         if (learningPackage){
             await learningPackage.update({
@@ -237,10 +260,10 @@ app.get('/api/package/:id/fact',async(req: Request, res: Response)=> {
 
 // post : to create a fact with the package id parameter in the URL
 app.post('/api/package/:id/fact', async (req: Request, res: Response) => {
-    const { title, description} = req.body;
+    const { title, description, content} = req.body;
     const packageId = parseInt(req.params.id)
 
-    if (!title || !description ) {
+    if (!title || !description || !content ) {
         res.status(400).json({ error: 'Some fields are not provided' });
     } else {
         try {
@@ -248,10 +271,12 @@ app.post('/api/package/:id/fact', async (req: Request, res: Response) => {
             const factId = rowsNb + 1;
 
             const learningFact = await LearningFactTable.create({
-                id: factId,
+                learningfactid: factId,
                 title,
                 description,
-                packageid: Number(packageId),
+                content,
+                learningpackageid: Number(packageId),
+                disable : false
             });
 
 
@@ -265,21 +290,23 @@ app.post('/api/package/:id/fact', async (req: Request, res: Response) => {
 
 // update an existing fact with the id in body and package id in url parameter
 app.put('/api/package/:id/fact', async (req: Request, res: Response) => {
-    const { title, description, id} = req.body;
+    const { title, description, learningfactid,content} = req.body;
     const packageId = parseInt(req.params.id);
 
-    if (!title || !description) {
+    if (!title || !description || !content) {
         res.status(400).json({ error: 'Some fields are not provided' });
     } else {
         try {
             const learningFact = await LearningFactTable.findOne({
-                where: { packageid: packageId, id: id },
+                where: { learningpackageid: packageId, learningfactid: learningfactid },
             });
 
             if (learningFact) {
                 await learningFact.update({
+
                     title,
                     description,
+                    content
                 });
 
                 res.status(200).json(learningFact);
