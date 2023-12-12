@@ -19,6 +19,7 @@ const LearningPackage_1 = __importDefault(require("./LearningPackage"));
 const LearningFact_1 = __importDefault(require("./LearningFact"));
 const UserPackageLearning_1 = __importDefault(require("./UserPackageLearning"));
 const LearningSession_1 = __importDefault(require("./LearningSession"));
+const UserLearningFact_1 = __importDefault(require("./UserLearningFact"));
 const User_1 = __importDefault(require("./User"));
 //express configuration
 const app = (0, express_1.default)();
@@ -89,6 +90,23 @@ app.get('/api/users', (Request, res) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         res.json({ error: 'Database connection error' });
+    }
+}));
+app.delete('/api/users/:userid', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userid = req.params.userid;
+    try {
+        // Trouver l'utilisateur par ID et le supprimer
+        const userToDelete = yield User_1.default.findByPk(userid);
+        if (userToDelete) {
+            yield userToDelete.destroy();
+            res.json({ message: 'Utilisateur supprimé avec succès.' });
+        }
+        else {
+            res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la suppression de l\'utilisateur.' });
     }
 }));
 app.post('/api/users', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -174,6 +192,26 @@ app.put('/api/package', (req, res) => __awaiter(void 0, void 0, void 0, function
         }
     }
 }));
+// Suppression d'un package par ID
+app.delete('/api/package/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const packageId = parseInt(req.params.id);
+    try {
+        // Supprimer le package avec learningpackageid égal à :id
+        const deletedPackage = yield LearningPackage_1.default.destroy({
+            where: { learningpackageid: packageId }
+        });
+        if (deletedPackage > 0) {
+            res.status(200).json({ message: `Package with ID ${packageId} deleted successfully` });
+        }
+        else {
+            res.status(404).json({ message: `Package with ID ${packageId} not found` });
+        }
+    }
+    catch (error) {
+        console.error('An error occurred while deleting the package:', error);
+        res.status(500).json({ error: packageId });
+    }
+}));
 // LearningFact management
 // get : to get all facts with the package id parameter in the URL by filtering facts with the package id
 app.get('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -243,23 +281,23 @@ app.put('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0,
         }
     }
 }));
-// delete an existing fact by disabling it with a boolean
-app.delete('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id } = req.body;
+// delete an existing fact by disabling it with a boolean, learningfactid in the url parameter and learningpackageid in the url :id
+app.delete('/api/package/:id/fact/:factId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { factId } = req.params;
     const packageId = parseInt(req.params.id);
-    if (!id) {
+    if (!factId) {
         res.status(400).json({ error: 'Some fields are not provided' });
     }
     else {
         try {
             const learningFact = yield LearningFact_1.default.findOne({
-                where: { packageid: packageId, id: id },
+                where: { learningfactid: factId, learningpackageid: packageId },
             });
             if (learningFact) {
                 yield learningFact.update({
                     disable: true
                 });
-                res.status(200).json({ message: `The fact ${id} has been disabled` });
+                res.status(200).json({ message: `The fact ${factId} has been disabled` });
             }
             else {
                 res.status(404).json({ message: 'No fact with this package id was found' });
@@ -269,6 +307,64 @@ app.delete('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void
             console.error('An error occurred while deleting the fact:', error);
             res.status(500).json({ error: error });
         }
+    }
+}));
+// Managment users progress
+app.get('/api/user-packages/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    try {
+        const userPackages = yield UserPackageLearning_1.default.findAll({
+            where: { userid: userId },
+            include: [LearningPackage_1.default],
+        });
+        res.json(userPackages);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database connection error' });
+    }
+}));
+app.get('/api/user-learning-fact/:userId/:packageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const packageId = req.params.packageId;
+    try {
+        const userLearningFacts = yield UserLearningFact_1.default.findAll({
+            where: {
+                userid: userId,
+            },
+            include: [{
+                    model: LearningFact_1.default,
+                    where: {
+                        learningpackageid: packageId,
+                    },
+                }],
+        });
+        res.json(userLearningFacts);
+    }
+    catch (error) {
+        res.json({ error: 'Database connection error' });
+    }
+}));
+app.get('/api/learning-facts/:userId/:learningPackageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const learningPackageId = req.params.learningPackageId;
+    try {
+        const learningFacts = yield UserLearningFact_1.default.findAll({
+            where: {
+                userid: userId,
+            },
+            include: [{
+                    model: LearningFact_1.default,
+                    where: {
+                        learningpackageid: learningPackageId,
+                    },
+                }],
+        });
+        res.json(learningFacts);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }));
 // Others API's
@@ -358,7 +454,7 @@ app.put('/api/learning_session/end', (req, res) => __awaiter(void 0, void 0, voi
             const learningFactPackage = yield LearningFact_1.default.findOne({ where: {
                     id: Number(learningfactid)
                 } });
-            const allFactsForPackage = yield LearningFact_1.default.findAll({ where: { packageid: learningFactPackage === null || learningFactPackage === void 0 ? void 0 : learningFactPackage.learningfactid } });
+            const allFactsForPackage = yield LearningFact_1.default.findAll({ where: { learningpackageid: learningFactPackage === null || learningFactPackage === void 0 ? void 0 : learningFactPackage.learningfactid } });
             const nbFacts = allFactsForPackage.length;
             if (learningFactPackage) {
                 const packageId = learningFactPackage.learningfactid;

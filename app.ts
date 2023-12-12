@@ -137,6 +137,24 @@ app.get('/api/users',async (Request,res:Response)=>{
     }
 });
 
+app.delete('/api/users/:userid', async (req, res) => {
+    const userid = req.params.userid;
+
+    try {
+        // Trouver l'utilisateur par ID et le supprimer
+        const userToDelete = await UserTable.findByPk(userid);
+
+        if (userToDelete) {
+            await userToDelete.destroy();
+            res.json({ message: 'Utilisateur supprimé avec succès.' });
+        } else {
+            res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erreur lors de la suppression de l\'utilisateur.' });
+    }
+});
+
 app.post('/api/users', async (req, res) => {
     const { name } = req.body;
 
@@ -240,6 +258,31 @@ app.put('/api/package',async (req: Request, res: Response) =>{
     }
 });
 
+// Suppression d'un package par ID
+app.delete('/api/package/:id', async (req, res) => {
+    const packageId = parseInt(req.params.id);
+
+    try {
+        // Supprimer le package avec learningpackageid égal à :id
+        const deletedPackage = await LearningPackageTable.destroy({
+            where: { learningpackageid: packageId }
+        });
+
+        if (deletedPackage > 0) {
+            res.status(200).json({ message: `Package with ID ${packageId} deleted successfully` });
+        } else {
+            res.status(404).json({ message: `Package with ID ${packageId} not found` });
+        }
+    } catch (error) {
+        console.error('An error occurred while deleting the package:', error);
+        res.status(500).json({ error: packageId});
+    }
+});
+
+
+
+
+
 // LearningFact management
 
 // get : to get all facts with the package id parameter in the URL by filtering facts with the package id
@@ -320,27 +363,28 @@ app.put('/api/package/:id/fact', async (req: Request, res: Response) => {
     }
 });
 
-// delete an existing fact by disabling it with a boolean
-app.delete('/api/package/:id/fact', async (req: Request, res: Response) => {
-    const {id} = req.body;
+
+// delete an existing fact by disabling it with a boolean, learningfactid in the url parameter and learningpackageid in the url :id
+app.delete('/api/package/:id/fact/:factId', async (req: Request, res: Response) => {
+    const { factId } = req.params;
     const packageId = parseInt(req.params.id);
 
-    if (!id) {
+    if (!factId) {
         res.status(400).json({ error: 'Some fields are not provided' });
     } else {
         try {
             const learningFact = await LearningFactTable.findOne({
-                where: { packageid: packageId, id: id },
+                where: { learningfactid: factId, learningpackageid: packageId },
             });
 
             if (learningFact) {
                 await learningFact.update({
-                    disable : true
+                    disable: true
                 });
 
-                res.status(200).json({message: `The fact ${id} has been disabled`});
+                res.status(200).json({ message: `The fact ${factId} has been disabled` });
             } else {
-                res.status(404).json({message : 'No fact with this package id was found'});
+                res.status(404).json({ message: 'No fact with this package id was found' });
             }
         } catch (error) {
             console.error('An error occurred while deleting the fact:', error);
@@ -348,6 +392,85 @@ app.delete('/api/package/:id/fact', async (req: Request, res: Response) => {
         }
     }
 });
+
+// Managment users progress
+
+
+app.get('/api/user-packages/:userId', async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const userPackages = await UserPackageLearningTable.findAll({
+            where: { userid: userId },
+            include: [LearningPackageTable],
+        });
+
+        res.json(userPackages);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Database connection error' });
+    }
+});
+
+app.get('/api/user-learning-fact/:userId/:packageId', async (req, res) => {
+    const userId = req.params.userId;
+    const packageId = req.params.packageId;
+
+    try {
+        const userLearningFacts = await UserLearningFactTable.findAll({
+            where: {
+                userid: userId,
+            },
+            include: [{
+                model: LearningFactTable,
+                where: {
+                    learningpackageid: packageId,
+                },
+            }],
+        });
+
+        res.json(userLearningFacts);
+    } catch (error) {
+        res.json({ error: 'Database connection error' });
+    }
+});
+
+
+
+app.get('/api/learning-facts/:userId/:learningPackageId', async (req, res) => {
+    const userId = req.params.userId;
+    const learningPackageId = req.params.learningPackageId;
+
+    try {
+        const learningFacts = await UserLearningFactTable.findAll({
+            where: {
+                userid: userId,
+            },
+            include: [{
+                model: LearningFactTable,
+                where: {
+                    learningpackageid: learningPackageId,
+                },
+            }],
+        });
+
+        res.json(learningFacts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 // Others API's
 
@@ -470,7 +593,7 @@ app.put('/api/learning_session/end',async (req : Request, res: Response) =>{
                     id: Number(learningfactid)}});
 
             const allFactsForPackage = await LearningFactTable.findAll({where:
-                    {packageid : learningFactPackage?.learningfactid}});
+                    {learningpackageid : learningFactPackage?.learningfactid}});
 
 
 
