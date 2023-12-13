@@ -36,7 +36,7 @@ UserLearningFactTable.init({
     },
     enddate: {
         type: sequelize_2.DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
     },
     finished: {
         type: sequelize_2.DataTypes.BOOLEAN,

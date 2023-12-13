@@ -26,6 +26,14 @@ LearningFactTable.init({
         type: sequelize_2.DataTypes.STRING,
         allowNull: false,
     },
+    question: {
+        type: sequelize_2.DataTypes.STRING,
+        allowNull: true,
+    },
+    answer: {
+        type: sequelize_2.DataTypes.STRING,
+        allowNull: true,
+    },
     learningpackageid: {
         type: sequelize_2.DataTypes.INTEGER,
         primaryKey: true,

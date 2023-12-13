@@ -225,11 +225,22 @@ app.get('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0,
         res.json({ error: 'Database connection error' });
     }
 }));
+app.get('/api/fact/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const learningFacts = yield LearningFact_1.default.findAll();
+        const id = parseInt(req.params.id);
+        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningfactid === id);
+        res.json(learningPackageFacts);
+    }
+    catch (error) {
+        res.json({ error: 'Database connection error' });
+    }
+}));
 // post : to create a fact with the package id parameter in the URL
 app.post('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { title, description, content } = req.body;
+    const { title, description, content, question, answer } = req.body;
     const packageId = parseInt(req.params.id);
-    if (!title || !description || !content) {
+    if (!title || !description || !content || !question || !answer) {
         res.status(400).json({ error: 'Some fields are not provided' });
     }
     else {
@@ -241,6 +252,8 @@ app.post('/api/package/:id/fact', (req, res) => __awaiter(void 0, void 0, void 0
                 title,
                 description,
                 content,
+                question,
+                answer,
                 learningpackageid: Number(packageId),
                 disable: false
             });
@@ -322,27 +335,6 @@ app.get('/api/user-packages/:userId', (req, res) => __awaiter(void 0, void 0, vo
     catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Database connection error' });
-    }
-}));
-app.get('/api/user-learning-fact/:userId/:packageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.params.userId;
-    const packageId = req.params.packageId;
-    try {
-        const userLearningFacts = yield UserLearningFact_1.default.findAll({
-            where: {
-                userid: userId,
-            },
-            include: [{
-                    model: LearningFact_1.default,
-                    where: {
-                        learningpackageid: packageId,
-                    },
-                }],
-        });
-        res.json(userLearningFacts);
-    }
-    catch (error) {
-        res.json({ error: 'Database connection error' });
     }
 }));
 app.get('/api/learning-facts/:userId/:learningPackageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {

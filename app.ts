@@ -301,12 +301,27 @@ app.get('/api/package/:id/fact',async(req: Request, res: Response)=> {
 
 });
 
+app.get('/api/fact/:id',async(req: Request, res: Response)=> {
+    try{
+
+        const learningFacts =  await LearningFactTable.findAll()
+        const id = parseInt(req.params.id)
+        const learningPackageFacts = learningFacts.filter(learningFact => learningFact.learningfactid === id);
+
+        res.json(learningPackageFacts)
+    }
+    catch (error){
+        res.json({error : 'Database connection error'})
+    }
+
+});
+
 // post : to create a fact with the package id parameter in the URL
 app.post('/api/package/:id/fact', async (req: Request, res: Response) => {
-    const { title, description, content} = req.body;
+    const { title, description, content,question,answer} = req.body;
     const packageId = parseInt(req.params.id)
 
-    if (!title || !description || !content ) {
+    if (!title || !description || !content || !question || !answer ) {
         res.status(400).json({ error: 'Some fields are not provided' });
     } else {
         try {
@@ -318,6 +333,8 @@ app.post('/api/package/:id/fact', async (req: Request, res: Response) => {
                 title,
                 description,
                 content,
+                question,
+                answer,
                 learningpackageid: Number(packageId),
                 disable : false
             });
@@ -412,28 +429,7 @@ app.get('/api/user-packages/:userId', async (req, res) => {
     }
 });
 
-app.get('/api/user-learning-fact/:userId/:packageId', async (req, res) => {
-    const userId = req.params.userId;
-    const packageId = req.params.packageId;
 
-    try {
-        const userLearningFacts = await UserLearningFactTable.findAll({
-            where: {
-                userid: userId,
-            },
-            include: [{
-                model: LearningFactTable,
-                where: {
-                    learningpackageid: packageId,
-                },
-            }],
-        });
-
-        res.json(userLearningFacts);
-    } catch (error) {
-        res.json({ error: 'Database connection error' });
-    }
-});
 
 
 
@@ -460,10 +456,6 @@ app.get('/api/learning-facts/:userId/:learningPackageId', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-
-
-
 
 
 

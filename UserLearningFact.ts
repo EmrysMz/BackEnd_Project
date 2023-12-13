@@ -6,13 +6,14 @@ import UserTable from "./User";
 
 class UserLearningFactTable extends Model{
     public userid!: number;
-    public learningpackageid!: number;
+    public learningfactid!: number;
     public timesreviewed!: number;
     public confidencelevel!: number;
     public lastrevieweddate!: Date;
     public startdate!: Date;
     public enddate!: Date;
     public finished!: boolean;
+
 
 
 }
@@ -46,7 +47,7 @@ UserLearningFactTable.init(
         },
         enddate:{
             type: DataTypes.DATE,
-            allowNull:false,
+            allowNull:true,
         },
         finished:{
             type:DataTypes.BOOLEAN,

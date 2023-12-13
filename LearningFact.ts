@@ -8,6 +8,8 @@ class LearningFactTable extends Model{
     public title!: string;
     public description!:string;
     public content!: string;
+    public question!: string;
+    public answer!: string;
     public learningpackageid!: number;
     public disable!: boolean;
 
@@ -31,6 +33,14 @@ LearningFactTable.init(
         content: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        question: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        answer: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
         learningpackageid: {
             type: DataTypes.INTEGER,
