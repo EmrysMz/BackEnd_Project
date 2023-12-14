@@ -359,6 +359,143 @@ app.get('/api/learning-facts/:userId/:learningPackageId', (req, res) => __awaite
         res.status(500).json({ error: 'Internal server error' });
     }
 }));
+// Api to add a learning fact to user's deck
+// app.js or app.ts
+app.post('/api/user-learning-fact/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    try {
+        // Extract data from the request body
+        const { learningfactid, timesreviewed, confidencelevel, lastrevieweddate, startdate, enddate, finished } = req.body;
+        // Check if a user learning fact with the same learningfactid already exists
+        const existingUserLearningFact = yield UserLearningFact_1.default.findOne({
+            where: {
+                userid: userId,
+                learningfactid: learningfactid
+            }
+        });
+        if (existingUserLearningFact) {
+            // If it exists, you might want to update it or handle the situation accordingly
+            return res.status(400).json({ error: 'User learning fact already exists for this learning fact' });
+        }
+        // If it doesn't exist, create a new UserLearningFact
+        const newUserLearningFact = yield UserLearningFact_1.default.create({
+            userid: userId,
+            learningfactid: learningfactid,
+            timesreviewed: timesreviewed,
+            confidencelevel: confidencelevel,
+            lastrevieweddate: lastrevieweddate,
+            startdate: startdate,
+            enddate: enddate,
+            finished: finished
+        });
+        res.json(newUserLearningFact);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}));
+app.post('/api/user-learning-package/:userId/:learningPackageId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.params.userId;
+        const learningPackageId = req.params.learningPackageId;
+        // Check if the entry already exists in UserPackageLearningTable
+        const existingEntry = yield UserPackageLearning_1.default.findOne({
+            where: {
+                userid: userId,
+                learningpackageid: learningPackageId
+            }
+        });
+        if (!existingEntry) {
+            const currentDate = new Date();
+            const endDate = new Date(currentDate);
+            endDate.setDate(currentDate.getDate() + 15); // Actual date + 15 days
+            // Add entry to UserPackageLearningTable
+            yield UserPackageLearning_1.default.create({
+                userid: userId,
+                learningpackageid: learningPackageId,
+                startdate: currentDate,
+                exceptedenddate: endDate,
+                minutesperdayobjective: 10,
+                finished: false
+            });
+            res.status(200).json({ message: 'User learning package added successfully.' });
+        }
+        else {
+            res.status(400).json({ message: 'User learning package already exists.' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}));
+// api put finish learning
+app.put('/api/user-learning-fact/finish/:userId/:lessonId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const lessonId = req.params.lessonId;
+    try {
+        // Mets à jour l'attribut "finished" à true dans UserLearningFactTable
+        const result = yield UserLearningFact_1.default.update({ finished: true }, {
+            where: {
+                userid: userId,
+                learningfactid: lessonId
+            }
+        });
+        if (result[0] === 1) {
+            res.json({ success: true, message: 'Learning completed successfully.' });
+        }
+        else {
+            res.status(404).json({ success: false, message: 'Learning not found.' });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}));
+//api confidence level update
+// Ton API (app.js ou quelque chose de similaire)
+app.put('/api/user-learning-fact/confidence/:userId/:lessonId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.userId;
+    const lessonId = req.params.lessonId;
+    try {
+        // Mets à jour l'attribut "confidencelevel" dans UserLearningFactTable
+        const result = yield UserLearningFact_1.default.update({ confidencelevel: req.body.confidencelevel }, {
+            where: {
+                userid: userId,
+                learningfactid: lessonId
+            }
+        });
+        if (result[0] === 1) {
+            res.json({ success: true, message: 'Confidence level updated successfully.' });
+        }
+        else {
+            res.status(404).json({ success: false, message: result });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+}));
+app.put('/api/user-learning-fact/update-date/:userId/:lessonId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId, lessonId } = req.params;
+    const { lastrevieweddate } = req.body;
+    try {
+        yield UserLearningFact_1.default.update({ lastrevieweddate: lastrevieweddate }, {
+            where: {
+                userid: userId,
+                learningfactid: lessonId,
+            }
+        });
+        res.json({ success: true, message: 'Lastrevieweddate updated successfully.' });
+    }
+    catch (error) {
+        console.error('Error updating lastrevieweddate:', error);
+        res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+}));
 // Others API's
 const futureDate = new Date(currentDate.getTime() + (7 * 24 * 60 * 60 * 1000));
 // An API to choose which learning package we want to start with an excepted completion time of 7 days
