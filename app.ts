@@ -462,7 +462,7 @@ app.get('/api/learning-facts/:userId/:learningPackageId', async (req, res) => {
 // Api to add a learning fact to user's deck
 
 
-// app.js or app.ts
+
 
 app.post('/api/user-learning-fact/:userId', async (req, res) => {
     const userId = req.params.userId;
@@ -488,7 +488,7 @@ app.post('/api/user-learning-fact/:userId', async (req, res) => {
         });
 
         if (existingUserLearningFact) {
-            // If it exists, you might want to update it or handle the situation accordingly
+
             return res.status(400).json({ error: 'User learning fact already exists for this learning fact' });
         }
 
@@ -586,7 +586,7 @@ app.put('/api/user-learning-fact/finish/:userId/:lessonId', async (req, res) => 
 
 //api confidence level update
 
-// Ton API (app.js ou quelque chose de similaire)
+
 app.put('/api/user-learning-fact/confidence/:userId/:lessonId', async (req, res) => {
     const userId = req.params.userId;
     const lessonId = req.params.lessonId;
@@ -622,7 +622,7 @@ app.put('/api/user-learning-fact/update-date/:userId/:lessonId', async (req, res
 
     try {
         await UserLearningFactTable.update(
-            { lastrevieweddate: lastrevieweddate },
+            { lastrevieweddate: lastrevieweddate, timesreviewed: sequelize.literal('timesreviewed + 1') },
             {
                 where: {
                     userid: userId,

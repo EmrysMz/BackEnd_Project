@@ -360,7 +360,6 @@ app.get('/api/learning-facts/:userId/:learningPackageId', (req, res) => __awaite
     }
 }));
 // Api to add a learning fact to user's deck
-// app.js or app.ts
 app.post('/api/user-learning-fact/:userId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.userId;
     try {
@@ -374,7 +373,6 @@ app.post('/api/user-learning-fact/:userId', (req, res) => __awaiter(void 0, void
             }
         });
         if (existingUserLearningFact) {
-            // If it exists, you might want to update it or handle the situation accordingly
             return res.status(400).json({ error: 'User learning fact already exists for this learning fact' });
         }
         // If it doesn't exist, create a new UserLearningFact
@@ -455,7 +453,6 @@ app.put('/api/user-learning-fact/finish/:userId/:lessonId', (req, res) => __awai
     }
 }));
 //api confidence level update
-// Ton API (app.js ou quelque chose de similaire)
 app.put('/api/user-learning-fact/confidence/:userId/:lessonId', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.userId;
     const lessonId = req.params.lessonId;
@@ -483,7 +480,7 @@ app.put('/api/user-learning-fact/update-date/:userId/:lessonId', (req, res) => _
     const { userId, lessonId } = req.params;
     const { lastrevieweddate } = req.body;
     try {
-        yield UserLearningFact_1.default.update({ lastrevieweddate: lastrevieweddate }, {
+        yield UserLearningFact_1.default.update({ lastrevieweddate: lastrevieweddate, timesreviewed: sequelize_1.default.literal('timesreviewed + 1') }, {
             where: {
                 userid: userId,
                 learningfactid: lessonId,
